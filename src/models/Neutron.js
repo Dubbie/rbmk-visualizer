@@ -3,7 +3,7 @@ class Neutron {
   constructor(x, y) {
     this.x = x
     this.y = y
-    this.speed = 2 // Set speed
+    this.speed = 1 // Set speed
     // Randomize the direction
     const angle = Math.random() * 2 * Math.PI // Random angle in radians
     this.vx = this.speed * Math.cos(angle) // X velocity

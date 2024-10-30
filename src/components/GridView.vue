@@ -12,14 +12,15 @@ const canvasWidth = computed(() => {
 const canvasHeight = computed(() => {
   return gameEngineStore.rows * gameEngineStore.cellSize
 })
+const cellSize = computed(() => gameEngineStore.cellSize)
 
 // Handle canvas clicks
 const handleCanvasClick = event => {
   const rect = event.target.getBoundingClientRect()
   const x = event.clientX - rect.left // Get mouse X
   const y = event.clientY - rect.top // Get mouse Y
-  const col = Math.floor(x / 30) // Calculate column based on cell size
-  const row = Math.floor(y / 30) // Calculate row based on cell size
+  const col = Math.floor(x / cellSize.value) // Calculate column based on cell size
+  const row = Math.floor(y / cellSize.value) // Calculate row based on cell size
   gameEngineStore.explodeUranium(row, col) // Fire neutron
 }
 

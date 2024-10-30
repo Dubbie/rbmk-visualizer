@@ -6,17 +6,15 @@ import GridElement from '@/models/GridElement'
 import Neutron from '@/models/Neutron'
 
 export const useGameEngineStore = defineStore('gameEngine', () => {
+  const richness = 50
   const columns = 30
   const rows = 20
-  const cellSize = 30
+  const cellSize = 36
   const neutrons = ref([])
   const canvasRef = ref(null)
   const gridElements = ref(
     Array.from({ length: rows }, () =>
-      Array.from(
-        { length: columns },
-        () => new GridElement('uranium', 'rgb(37,99,235)'),
-      ),
+      Array.from({ length: columns }, () => null),
     ),
   )
   let canvas = null
@@ -26,15 +24,25 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
   const initialize = canvasParam => {
     canvas = canvasParam
 
-    console.log('Canvas:', canvasParam)
+    // Generate elements
+    generateElements(richness)
 
     if (canvas) {
-      console.log('Initializing!')
-
       context = canvas.getContext('2d')
       drawGrid()
       requestAnimationFrame(gameLoop)
     }
+  }
+
+  const generateElements = uraniumRichnessPercentage => {
+    gridElements.value = Array.from({ length: rows }, () =>
+      Array.from({ length: columns }, () => {
+        const isUranium = Math.random() < uraniumRichnessPercentage / 100 // Check if we should place uranium
+        return new GridElement(
+          isUranium ? ELEMENT_TYPES.URANIUM : ELEMENT_TYPES.INERT,
+        )
+      }),
+    )
   }
 
   // Draw the grid
@@ -67,7 +75,7 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
       const row = Math.floor(neutron.y / cellSize)
       if (row >= 0 && row < rows && col >= 0 && col < columns) {
         const element = getElement(row, col)
-        if (element.type === ELEMENT_TYPES.URANIUM) {
+        if (element.type === ELEMENT_TYPES.URANIUM.type) {
           explodeUranium(row, col) // Explode uranium if neutron collides
           neutrons.value.splice(i, 1) // Remove the neutron
           continue // Skip the rest of the loop for this neutron
@@ -102,12 +110,12 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
 
   // Explode uranium
   const explodeUranium = (row, col) => {
-    if (getElement(row, col).type !== ELEMENT_TYPES.URANIUM) {
+    if (getElement(row, col).type !== ELEMENT_TYPES.URANIUM.type) {
       return
     }
 
     // Make this element become inert
-    replaceElement(row, col, new GridElement('inert', 'gray'))
+    replaceElement(row, col, new GridElement(ELEMENT_TYPES.INERT))
 
     // Fire 3 neutrons in random directions.
     fireNeutrons(row, col, 3)
@@ -125,12 +133,7 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
     console.log('Resetting!')
 
     neutrons.value = []
-    gridElements.value = Array.from({ length: rows }, () =>
-      Array.from(
-        { length: columns },
-        () => new GridElement(ELEMENT_TYPES.URANIUM, 'rgb(37,99,235)'),
-      ),
-    )
+    generateElements(richness)
   }
 
   return {

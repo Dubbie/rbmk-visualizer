@@ -1,12 +1,7 @@
-import { ELEMENT_TYPES } from '@/constants'
-
 class GridElement {
-  constructor(type, color) {
-    if (!Object.values(ELEMENT_TYPES).includes(type)) {
-      throw new Error(`Invalid element type: ${type}`)
-    }
-    this.type = type
-    this.color = color
+  constructor(typeDefinition) {
+    this.type = typeDefinition.type
+    this.color = typeDefinition.color
   }
 
   draw(context, col, row, cellSize) {
