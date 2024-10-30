@@ -1,32 +1,37 @@
+// src/stores/gameEngineStore.js
+import { defineStore } from 'pinia'
+import { ref } from 'vue'
+import { ELEMENT_TYPES } from '@/constants'
 import GridElement from '@/models/GridElement'
 import Neutron from '@/models/Neutron'
-import { ELEMENT_TYPES } from '@/constants'
-import { ref } from 'vue'
 
-export const useGameEngine = () => {
-  const columns = 30 // Size of the grid
+export const useGameEngineStore = defineStore('gameEngine', () => {
+  const columns = 30
   const rows = 20
-  const cellSize = 30 // Size of each cell
-  const neutrons = ref([]) // Array to hold neutrons
-  const canvasRef = ref(null) // Reference to the canvas element
+  const cellSize = 30
+  const neutrons = ref([])
+  const canvasRef = ref(null)
   const gridElements = ref(
     Array.from({ length: rows }, () =>
       Array.from(
         { length: columns },
-        () => new GridElement(ELEMENT_TYPES.URANIUM, 'rgb(37,99,235)'),
+        () => new GridElement('uranium', 'rgb(37,99,235)'),
       ),
     ),
   )
-  let context = null // Canvas 2D context
+  let canvas = null
+  let context = null
 
   // Initialize the canvas and start the game loop
-  const initialize = canvas => {
-    canvasRef.value = canvas.value
+  const initialize = canvasParam => {
+    canvas = canvasParam
 
-    if (canvasRef.value) {
+    console.log('Canvas:', canvasParam)
+
+    if (canvas) {
       console.log('Initializing!')
 
-      context = canvasRef.value.getContext('2d')
+      context = canvas.getContext('2d')
       drawGrid()
       requestAnimationFrame(gameLoop)
     }
@@ -48,7 +53,7 @@ export const useGameEngine = () => {
 
   // Game loop
   const gameLoop = () => {
-    context.clearRect(0, 0, canvasRef.value.width, canvasRef.value.height) // Clear canvas
+    context.clearRect(0, 0, canvas.width, canvas.height) // Clear canvas
     drawGrid() // Redraw grid
 
     // Draw each neutron
@@ -70,9 +75,7 @@ export const useGameEngine = () => {
       }
 
       // Check if the neutron is out of bounds
-      if (
-        neutron.isOutOfBounds(canvasRef.value.width, canvasRef.value.height)
-      ) {
+      if (neutron.isOutOfBounds(canvas.width, canvas.height)) {
         neutrons.value.splice(i, 1) // Remove neutron if out of bounds
       } else {
         // Draw the neutron if it is within bounds using its draw method
@@ -118,13 +121,27 @@ export const useGameEngine = () => {
     gridElements.value[row][col] = newElement
   }
 
+  const reset = () => {
+    console.log('Resetting!')
+
+    neutrons.value = []
+    gridElements.value = Array.from({ length: rows }, () =>
+      Array.from(
+        { length: columns },
+        () => new GridElement(ELEMENT_TYPES.URANIUM, 'rgb(37,99,235)'),
+      ),
+    )
+  }
+
   return {
     canvasRef,
     rows,
     columns,
     cellSize,
     gridElements,
-    initialize,
+    neutrons,
     explodeUranium,
+    initialize,
+    reset,
   }
-}
+})

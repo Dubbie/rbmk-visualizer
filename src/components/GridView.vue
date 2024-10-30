@@ -1,16 +1,16 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { useGameEngine } from '@/composables/useGameEngine.js'
+import { useGameEngineStore } from '@/stores/gameEngineStore'
 
 const canvasRef = ref()
-const gameEngine = useGameEngine()
+const gameEngineStore = useGameEngineStore()
 
 // Calculate canvas size
 const canvasWidth = computed(() => {
-  return gameEngine.columns * gameEngine.cellSize
+  return gameEngineStore.columns * gameEngineStore.cellSize
 })
 const canvasHeight = computed(() => {
-  return gameEngine.rows * gameEngine.cellSize
+  return gameEngineStore.rows * gameEngineStore.cellSize
 })
 
 // Handle canvas clicks
@@ -20,11 +20,11 @@ const handleCanvasClick = event => {
   const y = event.clientY - rect.top // Get mouse Y
   const col = Math.floor(x / 30) // Calculate column based on cell size
   const row = Math.floor(y / 30) // Calculate row based on cell size
-  gameEngine.explodeUranium(row, col) // Fire neutron
+  gameEngineStore.explodeUranium(row, col) // Fire neutron
 }
 
 onMounted(() => {
-  gameEngine.initialize(canvasRef) // Initialize the game engine
+  gameEngineStore.initialize(canvasRef.value) // Initialize the game engine
 })
 </script>
 
