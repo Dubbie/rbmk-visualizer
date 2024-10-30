@@ -3,11 +3,15 @@ import GridView from '@/components/GridView.vue'
 </script>
 
 <template>
-  <div>
-    <p>Welcome to the reactor</p>
+  <div class="container relative h-screen">
+    <p class="text-xl font-bold text-white text-center mb-6">
+      Welcome to the reactor
+    </p>
 
-    <div>
-      <GridView />
+    <div class="flex justify-center">
+      <div class="bg-zinc-800 rounded-xl">
+        <GridView />
+      </div>
     </div>
   </div>
 </template>

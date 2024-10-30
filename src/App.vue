@@ -7,17 +7,21 @@ const { isDark, toggleDarkMode } = useDarkMode()
 
 <template>
   <div class="min-h-svh dark:text-zinc-500 dark:bg-zinc-900">
-    <header>
-      <div class="wrapper">
-        <nav>
-          <RouterLink to="/">Home</RouterLink>
-          <RouterLink to="/about">About</RouterLink>
-        </nav>
+    <div class="max-w-7xl mx-auto">
+      <header>
+        <div class="wrapper">
+          <nav>
+            <RouterLink to="/">Home</RouterLink>
+            <RouterLink to="/about">About</RouterLink>
+          </nav>
 
-        <button @click="toggleDarkMode">{{ isDark ? 'Light' : 'Dark' }}</button>
-      </div>
-    </header>
+          <button @click="toggleDarkMode">
+            {{ isDark ? 'Light' : 'Dark' }}
+          </button>
+        </div>
+      </header>
 
-    <RouterView />
+      <RouterView />
+    </div>
   </div>
 </template>

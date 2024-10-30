@@ -1,3 +1,4 @@
+<!-- GridView.vue -->
 <script setup>
 import { onMounted } from 'vue'
 import { useGridStore } from '@/stores/grid.js'
@@ -17,33 +18,48 @@ onMounted(() => {
 </script>
 
 <template>
-  <div
-    class="grid gap-1"
-    :style="{
-      gridTemplateColumns: `repeat(${gridStore.columns}, minmax(2rem, 1fr))`,
-    }"
-  >
+  <div class="grid-container">
     <div
       v-for="(row, rowIndex) in gridStore.grid"
       :key="`row-${rowIndex}`"
-      class="flex"
+      class="grid-row"
+      :style="{ gridTemplateColumns: `repeat(${gridStore.columns}, 1fr)` }"
     >
-      {{ row }}
       <div
         v-for="(cell, colIndex) in row"
         :key="`cell-${rowIndex}-${colIndex}`"
-        :class="[
-          'size-8 flex items-center justify-center cursor-pointer border text-xs',
-          getElementProperties(cell).color,
-        ]"
+        class="grid-cell"
         @click="changeElement(rowIndex, colIndex)"
       >
-        {{ getElementProperties(cell).label }}
+        <div
+          class="element rounded-full size-4"
+          :class="getElementProperties(cell).color"
+        ></div>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-/* Optional if you need specific scoped styles beyond Tailwind's utility classes */
+.grid-container {
+  display: grid; /* This should remain to create the overall grid */
+  gap: 4px; /* Adjust spacing between grid cells */
+}
+
+.grid-row {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(30px, 1fr)
+  ); /* Adjust as necessary */
+}
+
+.grid-cell {
+  width: 30px; /* Cell width */
+  height: 30px; /* Cell height */
+  display: flex; /* Flex to center the element within the cell */
+  align-items: center;
+  justify-content: center;
+  cursor: pointer; /* Pointer cursor on hover */
+}
 </style>

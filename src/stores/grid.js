@@ -3,13 +3,14 @@ import { defineStore } from 'pinia'
 export const useGridStore = defineStore('grid', {
   state: () => ({
     rows: 10,
-    cols: 10,
+    columns: 10,
     grid: [],
   }),
   actions: {
     initializeGrid() {
-      this.grid = Array.from({ length: this.rows }, () =>
-        Array.from({ length: this.columns }, () => 'empty'),
+      this.grid = Array.from(
+        { length: this.rows },
+        () => Array.from({ length: this.columns }, () => 'empty'), // Initialize with 'empty'
       )
     },
     setElement(row, col, element) {

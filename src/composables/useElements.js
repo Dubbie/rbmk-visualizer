@@ -5,7 +5,7 @@ export function useElements() {
     uranium: { color: 'bg-blue-500', label: 'Uranium' },
     inert: { color: 'bg-gray-400', label: 'Inert' },
     xenon: { color: 'bg-gray-600', label: 'Xenon' },
-    empty: { color: 'bg-white', label: 'Empty' },
+    empty: { color: 'bg-white dark:bg-zinc-700', label: 'Empty' },
   })
 
   const getElementProperties = elementKey =>
