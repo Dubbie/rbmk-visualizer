@@ -19,6 +19,8 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
   )
   let canvas = null
   let context = null
+  let animationFrameId = null
+  let isRunning = true
 
   // Initialize the canvas and start the game loop
   const initialize = canvasParam => {
@@ -31,7 +33,21 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
       context = canvas.getContext('2d')
       drawGrid()
       requestAnimationFrame(gameLoop)
+      setupVisibilityChangeHandler()
     }
+  }
+
+  // Handle visibility change to pause/resume the game loop
+  const setupVisibilityChangeHandler = () => {
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        isRunning = false // Pause the game
+        cancelAnimationFrame(animationFrameId) // Stop the game loop
+      } else {
+        isRunning = true // Resume the game
+        requestAnimationFrame(gameLoop) // Restart the game loop
+      }
+    })
   }
 
   const generateElements = uraniumRichnessPercentage => {
@@ -61,6 +77,7 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
 
   // Game loop
   const gameLoop = () => {
+    if (!isRunning) return
     context.clearRect(0, 0, canvas.width, canvas.height) // Clear canvas
     drawGrid() // Redraw grid
 
