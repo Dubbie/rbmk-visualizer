@@ -1,4 +1,4 @@
-export const DEBUG = true
+export const DEBUG = false
 
 export const ELEMENT_TYPES = {
   URANIUM: {
@@ -16,7 +16,9 @@ export const ELEMENT_TYPES = {
 }
 
 export const MIN_DECAY_TIME = 1000 * 2
-export const MAX_DECAY_TIME = 1000 * 180
+export const MAX_DECAY_TIME = 1000 * 120
 
-export const MIN_URANIUM_TIME = 100
-export const MAX_URANIUM_TIME = 2000
+export const MIN_URANIUM_TIME = 0
+export const MAX_URANIUM_TIME = 120
+
+export const TARGET_NEUTRON_COUNT = 40

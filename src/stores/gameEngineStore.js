@@ -6,13 +6,14 @@ import {
   ELEMENT_TYPES,
   MAX_URANIUM_TIME,
   MIN_URANIUM_TIME,
+  TARGET_NEUTRON_COUNT,
 } from '@/constants'
 import GridElement from '@/models/GridElement'
 import Neutron from '@/models/Neutron'
 import ControlRod from '@/models/ControlRod'
 
 export const useGameEngineStore = defineStore('gameEngine', () => {
-  const richness = 20
+  const richness = 10
   const columns = 40
   const rows = 21
   const cellSize = 30
@@ -75,8 +76,10 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
       gridElements.value[randomRow][randomCol].type !==
       ELEMENT_TYPES.URANIUM.type
     ) {
-      gridElements.value[randomRow][randomCol] = new GridElement(
-        ELEMENT_TYPES.URANIUM,
+      replaceElement(
+        randomRow,
+        randomCol,
+        new GridElement(ELEMENT_TYPES.URANIUM),
       )
 
       if (DEBUG) {
@@ -119,6 +122,7 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
       } else {
         isRunning.value = true // Resume the game
         requestAnimationFrame(gameLoop) // Restart the game loop
+        scheduleRandomUranium()
       }
     })
   }
@@ -154,6 +158,8 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
     context.clearRect(0, 0, canvas.width, canvas.height) // Clear canvas
     drawGrid() // Redraw grid
     drawControlRods()
+
+    adjustControlRods()
 
     // Draw each neutron
     for (let i = neutrons.value.length - 1; i >= 0; i--) {
@@ -198,6 +204,7 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
   }
 
   const fireNeutron = (row, col) => {
+    if (!isRunning.value) return
     const neutron = new Neutron(
       col * cellSize + cellSize / 2,
       row * cellSize + cellSize / 2,
@@ -230,6 +237,26 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
 
   const replaceElement = (row, col, newElement) => {
     gridElements.value[row][col] = newElement
+  }
+
+  // Update the adjustControlRods function in useGameEngine.js
+  const adjustControlRods = () => {
+    const currentNeutronCount = neutrons.value.length
+
+    // Determine if we need to lower or lift control rods
+    const isReducingNeutrons = currentNeutronCount > TARGET_NEUTRON_COUNT
+
+    // Adjust control rods based on current neutron count
+    controlRods.value.forEach((rod, index) => {
+      if (index % 2 === 0) {
+        // Adjust every second control rod
+        if (isReducingNeutrons) {
+          rod.lower() // Lower rod to reduce neutron count
+        } else {
+          rod.lift() // Lift rod to increase neutron count
+        }
+      }
+    })
   }
 
   const reset = () => {
