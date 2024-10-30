@@ -83,24 +83,42 @@ export const useGameEngine = () => {
     drawGrid() // Redraw grid
 
     // Draw each neutron
-    neutrons.value.forEach(neutron => {
+    for (let i = neutrons.value.length - 1; i >= 0; i--) {
+      const neutron = neutrons.value[i]
+
+      // Draw neutron
       context.fillStyle = 'white'
       context.beginPath()
       context.arc(neutron.x, neutron.y, 5, 0, Math.PI * 2)
       context.fill()
       context.closePath()
-      neutron.x += neutron.directionX * slowNeutronSpeed
-      neutron.y += neutron.directionY * slowNeutronSpeed
 
-      // Check for collision (you can adjust this logic)
-      if (
-        Math.abs(neutron.x - neutron.targetX) < 5 &&
-        Math.abs(neutron.y - neutron.targetY) < 5
-      ) {
-        // Handle collision (e.g., remove neutron)
-        neutrons.value.splice(neutrons.value.indexOf(neutron), 1)
+      // Update neutron position based on direction
+      neutron.x += neutron.directionX * slowNeutronSpeed // Move in x direction
+      neutron.y += neutron.directionY * slowNeutronSpeed // Move in y direction
+
+      // Check for collisions with uranium
+      const col = Math.floor(neutron.x / cellSize)
+      const row = Math.floor(neutron.y / cellSize)
+
+      if (col >= 0 && col < columns && row >= 0 && row < rows) {
+        if (getElement(row, col) === 'uranium') {
+          explodeUranium(row, col) // Trigger explosion
+          neutrons.value.splice(i, 1) // Remove neutron after explosion
+          continue // Skip the rest of this iteration
+        }
       }
-    })
+
+      // Remove neutrons that go out of the canvas
+      if (
+        neutron.x < 0 ||
+        neutron.x > canvasRef.value.width ||
+        neutron.y < 0 ||
+        neutron.y > canvasRef.value.height
+      ) {
+        neutrons.value.splice(i, 1)
+      }
+    }
 
     requestAnimationFrame(gameLoop) // Continue the loop
   }
