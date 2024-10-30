@@ -1,7 +1,8 @@
 import { ELEMENT_TYPES, MAX_DECAY_TIME, MIN_DECAY_TIME } from '@/constants'
+import Water from './Water'
 
 class GridElement {
-  constructor(typeDefinition) {
+  constructor(typeDefinition, water = null) {
     // Check if typeDefinition is valid and has the necessary properties
     if (!typeDefinition || typeof typeDefinition !== 'object') {
       throw new Error('Invalid typeDefinition: Expected an object.')
@@ -30,9 +31,16 @@ class GridElement {
     this.type = typeDefinition.type
     this.color = typeDefinition.color
     this.decayInterval = null
+
+    this.water = water ? water : new Water()
   }
 
   draw(context, col, row, cellSize) {
+    // Draw water background if it exists and hasn’t evaporated
+    if (this.water && !this.water.isEvaporated()) {
+      this.drawWater(context, col, row, cellSize)
+    }
+
     if (this.color !== 'transparent') {
       context.fillStyle = this.color
       context.beginPath()
@@ -46,6 +54,22 @@ class GridElement {
       context.fill()
       context.closePath()
     }
+  }
+
+  drawWater(context, col, row, cellSize) {
+    const waterColor = this.water.getColor() // Get color based on temperature
+    context.fillStyle = waterColor
+    context.fillRect(col * cellSize, row * cellSize, cellSize, cellSize) // Draw water as a background
+  }
+
+  heatWater(amount) {
+    if (this.water && !this.water.isEvaporated()) {
+      this.water.heat(amount) // Increase the temperature of water
+    }
+  }
+
+  isWaterEvaporated() {
+    return this.water && this.water.isEvaporated() // Check if water has evaporated
   }
 
   startDecay(fireNeutron) {

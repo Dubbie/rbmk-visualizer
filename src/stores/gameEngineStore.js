@@ -4,6 +4,7 @@ import { ref } from 'vue'
 import {
   DEBUG,
   ELEMENT_TYPES,
+  HEATING_RATE,
   MAX_URANIUM_TIME,
   MIN_URANIUM_TIME,
   TARGET_NEUTRON_COUNT,
@@ -167,11 +168,19 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
 
       neutron.move() // Move the neutron
 
-      // Check for collision with uranium
+      // Check for collision with the grid element
       const col = Math.floor(neutron.x / cellSize)
       const row = Math.floor(neutron.y / cellSize)
       if (row >= 0 && row < rows && col >= 0 && col < columns) {
         const element = getElement(row, col)
+        element.heatWater(HEATING_RATE)
+
+        // Check if water absorbs this neutron
+        if (element.water.absorbNeutron()) {
+          neutrons.value.splice(i, 1) // Remove the neutron
+          continue // Skip the rest of the loop for this neutron
+        }
+
         if (element.type === ELEMENT_TYPES.URANIUM.type) {
           explodeUranium(row, col) // Explode uranium if neutron collides
           neutrons.value.splice(i, 1) // Remove the neutron
