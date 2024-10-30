@@ -7,9 +7,9 @@ import Neutron from '@/models/Neutron'
 
 export const useGameEngineStore = defineStore('gameEngine', () => {
   const richness = 50
-  const columns = 30
-  const rows = 20
-  const cellSize = 36
+  const columns = 40
+  const rows = 25
+  const cellSize = 30
   const neutrons = ref([])
   const canvasRef = ref(null)
   const gridElements = ref(
