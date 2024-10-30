@@ -1,7 +1,7 @@
 // src/stores/gameEngineStore.js
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { ELEMENT_TYPES } from '@/constants'
+import { DEBUG, ELEMENT_TYPES } from '@/constants'
 import GridElement from '@/models/GridElement'
 import Neutron from '@/models/Neutron'
 
@@ -22,6 +22,10 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
   let animationFrameId = null
   let isRunning = true
 
+  // Fuel regeneration
+  const minUraniumTime = 200
+  const maxUraniumTime = 2000
+
   // Initialize the canvas and start the game loop
   const initialize = canvasParam => {
     canvas = canvasParam
@@ -34,7 +38,40 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
       drawGrid()
       requestAnimationFrame(gameLoop)
       setupVisibilityChangeHandler()
+      scheduleRandomUranium()
     }
+  }
+
+  // Function to add uranium at a random position
+  const addRandomUranium = () => {
+    // Generate a random position within the grid
+    const randomRow = Math.floor(Math.random() * rows)
+    const randomCol = Math.floor(Math.random() * columns)
+
+    // Check if the random position is already uranium; if so, skip adding
+    if (
+      gridElements.value[randomRow][randomCol].type !==
+      ELEMENT_TYPES.URANIUM.type
+    ) {
+      gridElements.value[randomRow][randomCol] = new GridElement(
+        ELEMENT_TYPES.URANIUM,
+      )
+
+      if (DEBUG) {
+        console.log(`Added uranium at (${randomRow}, ${randomCol})`)
+      }
+    }
+
+    // Schedule the next uranium addition
+    scheduleRandomUranium()
+  }
+
+  // Function to schedule the next uranium addition
+  const scheduleRandomUranium = () => {
+    const randomDelay = Math.floor(
+      Math.random() * (maxUraniumTime - minUraniumTime + 1) + minUraniumTime,
+    )
+    setTimeout(addRandomUranium, randomDelay)
   }
 
   // Handle visibility change to pause/resume the game loop
