@@ -123,6 +123,11 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
     drawGrid() // Redraw grid
     drawControlRods()
 
+    // If neutrons get out of hand, bail out
+    if (neutrons.value.length > 2000) {
+      reset()
+    }
+
     if (autoAdjustRods.value) {
       adjustControlRods()
     } else {
