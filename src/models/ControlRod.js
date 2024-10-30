@@ -1,10 +1,12 @@
+import { ROD_SPEED } from '@/constants'
+
 class ControlRod {
   constructor(x, maxHeight) {
     this.x = x // x position of the control rod
     this.maxHeight = maxHeight
     this.height = maxHeight // Start at the bottom (not lifted)
     this.width = 6
-    this.speed = 0.1
+    this.speed = ROD_SPEED
   }
 
   draw(context) {

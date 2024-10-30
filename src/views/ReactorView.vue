@@ -7,12 +7,21 @@ import { computed } from 'vue'
 const gameEngineStore = useGameEngineStore()
 const isRunning = computed(() => gameEngineStore.isRunning)
 const neutronCount = computed(() => gameEngineStore.neutrons.length)
+const autoAdjustRods = computed(() => gameEngineStore.autoAdjustRods)
 
 const toggleGameState = () => {
   if (isRunning.value) {
     gameEngineStore.stop()
   } else {
     gameEngineStore.start()
+  }
+}
+
+const toggleAutoAdjust = () => {
+  if (autoAdjustRods.value) {
+    gameEngineStore.autoAdjustRods = false
+  } else {
+    gameEngineStore.autoAdjustRods = true
   }
 }
 
@@ -34,6 +43,21 @@ const arrowSvg = computed(() => {
     <p class="text-xl font-bold text-white text-center mb-6">
       Welcome to the reactor
     </p>
+
+    <div class="flex justify-between">
+      <button @click="toggleAutoAdjust">
+        Automatic Rod Adjusment: {{ autoAdjustRods ? 'ON' : 'OFF' }}
+      </button>
+
+      <div class="flex gap-x-2">
+        <button @click="gameEngineStore.rodOverrideDirection = 'lift'">
+          Raise rods
+        </button>
+        <button @click="gameEngineStore.rodOverrideDirection = 'lower'">
+          Lower rods
+        </button>
+      </div>
+    </div>
 
     <div class="flex justify-center items-center gap-x-2">
       <p class="font-black text-lg">{{ neutronCount }}</p>

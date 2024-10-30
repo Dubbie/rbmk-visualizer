@@ -1,17 +1,11 @@
 // src/stores/gameEngineStore.js
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import {
-  DEBUG,
-  ELEMENT_TYPES,
-  HEATING_RATE,
-  MAX_URANIUM_TIME,
-  MIN_URANIUM_TIME,
-  TARGET_NEUTRON_COUNT,
-} from '@/constants'
+import { ELEMENT_TYPES, HEATING_RATE, TARGET_NEUTRON_COUNT } from '@/constants'
 import GridElement from '@/models/GridElement'
 import Neutron from '@/models/Neutron'
 import ControlRod from '@/models/ControlRod'
+import UraniumRefillManager from '@/models/UraniumRefillManager'
 
 export const useGameEngineStore = defineStore('gameEngine', () => {
   const richness = 10
@@ -30,6 +24,10 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
   let context = null
   let animationFrameId = null
   const isRunning = ref(true)
+  const autoAdjustRods = ref(true)
+  const rodOverrideDirection = ref(null)
+
+  let uraniumRefillManager = null
 
   // Initialize the canvas and start the game loop
   const initialize = canvasParam => {
@@ -38,13 +36,15 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
     // Generate elements
     generateElements(richness)
 
+    uraniumRefillManager = new UraniumRefillManager(gridElements, richness)
+    uraniumRefillManager.startRefillProcess()
+
     if (canvas) {
       context = canvas.getContext('2d')
       drawGrid()
       createControlRods(10)
       requestAnimationFrame(gameLoop)
       setupVisibilityChangeHandler()
-      scheduleRandomUranium()
       startDecayForInertElements()
     }
   }
@@ -66,32 +66,6 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
     }
   }
 
-  // Function to add uranium at a random position
-  const addRandomUranium = () => {
-    // Generate a random position within the grid
-    const randomRow = Math.floor(Math.random() * rows)
-    const randomCol = Math.floor(Math.random() * columns)
-
-    // Check if the random position is already uranium; if so, skip adding
-    if (
-      gridElements.value[randomRow][randomCol].type !==
-      ELEMENT_TYPES.URANIUM.type
-    ) {
-      replaceElement(
-        randomRow,
-        randomCol,
-        new GridElement(ELEMENT_TYPES.URANIUM),
-      )
-
-      if (DEBUG) {
-        console.log(`Added uranium at (${randomRow}, ${randomCol})`)
-      }
-    }
-
-    // Schedule the next uranium addition
-    scheduleRandomUranium()
-  }
-
   // Function to initiate decay for all inert elements
   const startDecayForInertElements = () => {
     for (let row = 0; row < rows; row++) {
@@ -104,16 +78,6 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
     }
   }
 
-  // Function to schedule the next uranium addition
-  const scheduleRandomUranium = () => {
-    if (!isRunning.value) return
-    const randomDelay = Math.floor(
-      Math.random() * (MAX_URANIUM_TIME - MIN_URANIUM_TIME + 1) +
-        MIN_URANIUM_TIME,
-    )
-    setTimeout(addRandomUranium, randomDelay)
-  }
-
   // Handle visibility change to pause/resume the game loop
   const setupVisibilityChangeHandler = () => {
     document.addEventListener('visibilitychange', () => {
@@ -123,7 +87,6 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
       } else {
         isRunning.value = true // Resume the game
         requestAnimationFrame(gameLoop) // Restart the game loop
-        scheduleRandomUranium()
       }
     })
   }
@@ -160,7 +123,20 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
     drawGrid() // Redraw grid
     drawControlRods()
 
-    adjustControlRods()
+    if (autoAdjustRods.value) {
+      adjustControlRods()
+    } else {
+      switch (rodOverrideDirection.value) {
+        case 'lift':
+          liftRods()
+          break
+        case 'lower':
+          lowerRods()
+          break
+        default:
+          break
+      }
+    }
 
     // Draw each neutron
     for (let i = neutrons.value.length - 1; i >= 0; i--) {
@@ -255,6 +231,10 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
     // Determine if we need to lower or lift control rods
     const isReducingNeutrons = currentNeutronCount > TARGET_NEUTRON_COUNT
 
+    if (rodOverrideDirection.value) {
+      rodOverrideDirection.value = null
+    }
+
     // Adjust control rods based on current neutron count
     controlRods.value.forEach((rod, index) => {
       if (index % 2 === 0) {
@@ -265,6 +245,21 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
           rod.lift() // Lift rod to increase neutron count
         }
       }
+    })
+  }
+
+  const liftRods = () => {
+    if (autoAdjustRods.value) return
+
+    controlRods.value.forEach(rod => {
+      rod.lift()
+    })
+  }
+
+  const lowerRods = () => {
+    if (autoAdjustRods.value) return
+    controlRods.value.forEach(rod => {
+      rod.lower()
     })
   }
 
@@ -293,8 +288,11 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
     gridElements,
     neutrons,
     isRunning,
+    autoAdjustRods,
+    rodOverrideDirection,
     explodeUranium,
     initialize,
+    replaceElement,
     reset,
     stop,
     start,
