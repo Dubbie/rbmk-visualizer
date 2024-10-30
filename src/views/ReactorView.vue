@@ -5,6 +5,7 @@ import { computed } from 'vue'
 
 const gameEngineStore = useGameEngineStore()
 const isRunning = computed(() => gameEngineStore.isRunning)
+const neutronCount = computed(() => gameEngineStore.neutrons.length)
 
 const toggleGameState = () => {
   if (isRunning.value) {
@@ -19,6 +20,10 @@ const toggleGameState = () => {
   <div class="container relative h-screen" @click="fireNeutron">
     <p class="text-xl font-bold text-white text-center mb-6">
       Welcome to the reactor
+    </p>
+
+    <p class="text-center">
+      <span class="font-black text-lg">{{ neutronCount }}</span>
     </p>
 
     <div class="flex flex-col items-center gap-y-6">

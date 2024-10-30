@@ -4,11 +4,12 @@ import { ref } from 'vue'
 import { DEBUG, ELEMENT_TYPES } from '@/constants'
 import GridElement from '@/models/GridElement'
 import Neutron from '@/models/Neutron'
+import ControlRod from '@/models/ControlRod'
 
 export const useGameEngineStore = defineStore('gameEngine', () => {
   const richness = 20
   const columns = 40
-  const rows = 25
+  const rows = 21
   const cellSize = 30
   const neutrons = ref([])
   const canvasRef = ref(null)
@@ -17,6 +18,7 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
       Array.from({ length: columns }, () => null),
     ),
   )
+  const controlRods = ref([])
   let canvas = null
   let context = null
   let animationFrameId = null
@@ -36,10 +38,28 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
     if (canvas) {
       context = canvas.getContext('2d')
       drawGrid()
+      createControlRods(10)
       requestAnimationFrame(gameLoop)
       setupVisibilityChangeHandler()
       scheduleRandomUranium()
       startDecayForInertElements()
+    }
+  }
+
+  const createControlRods = quantity => {
+    let x = cellSize * 2
+
+    for (let i = 0; i < quantity; i++) {
+      controlRods.value.push(new ControlRod(x, rows * cellSize))
+
+      x += cellSize * 4
+    }
+  }
+
+  // Draw the control rods
+  const drawControlRods = () => {
+    for (const rod of controlRods.value) {
+      rod.draw(context) // Draw each control rod
     }
   }
 
@@ -131,6 +151,7 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
     if (!isRunning.value) return
     context.clearRect(0, 0, canvas.width, canvas.height) // Clear canvas
     drawGrid() // Redraw grid
+    drawControlRods()
 
     // Draw each neutron
     for (let i = neutrons.value.length - 1; i >= 0; i--) {
@@ -147,6 +168,18 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
           explodeUranium(row, col) // Explode uranium if neutron collides
           neutrons.value.splice(i, 1) // Remove the neutron
           continue // Skip the rest of the loop for this neutron
+        }
+      }
+
+      // Check for collision with control rods
+      for (const rod of controlRods.value) {
+        if (
+          neutron.x >= rod.x &&
+          neutron.x <= rod.x + rod.width &&
+          neutron.y <= rod.height
+        ) {
+          neutrons.value.splice(i, 1) // Remove the neutron if it collides with a control rod
+          break // Exit the loop once a collision is detected
         }
       }
 
