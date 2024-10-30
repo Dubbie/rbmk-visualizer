@@ -1,4 +1,6 @@
-// src/composables/useGameEngine.js
+import GridElement from '@/models/GridElement'
+import Neutron from '@/models/Neutron'
+import { ELEMENT_TYPES } from '@/constants'
 import { ref } from 'vue'
 
 export const useGameEngine = () => {
@@ -9,13 +11,13 @@ export const useGameEngine = () => {
   const canvasRef = ref(null) // Reference to the canvas element
   const gridElements = ref(
     Array.from({ length: rows }, () =>
-      Array.from({ length: columns }, () => 'uranium'),
+      Array.from(
+        { length: columns },
+        () => new GridElement(ELEMENT_TYPES.URANIUM, 'rgb(37,99,235)'),
+      ),
     ),
   )
   let context = null // Canvas 2D context
-
-  // Speeds
-  const slowNeutronSpeed = 2
 
   // Initialize the canvas and start the game loop
   const initialize = canvas => {
@@ -38,42 +40,9 @@ export const useGameEngine = () => {
         context.fillRect(col * cellSize, row * cellSize, cellSize, cellSize)
 
         // Draw the element in the cell
-        drawElement(col, row, getElement(row, col))
+        const element = getElement(row, col)
+        element.draw(context, col, row, cellSize)
       }
-    }
-  }
-
-  const drawElement = (col, row, element) => {
-    let color
-    switch (element) {
-      case 'uranium':
-        color = 'rgb(37, 99, 235)'
-        break
-      case 'inert':
-        color = 'gray'
-        break
-      case 'xenon':
-        color = 'darkgray'
-        break
-      case 'empty':
-        color = 'transparent' // This will effectively not draw anything
-        break
-      default:
-        color = 'transparent'
-    }
-
-    if (color !== 'transparent') {
-      context.fillStyle = color
-      context.beginPath()
-      context.arc(
-        col * cellSize + cellSize / 2,
-        row * cellSize + cellSize / 2,
-        cellSize / 4,
-        0,
-        Math.PI * 2,
-      )
-      context.fill()
-      context.closePath()
     }
   }
 
@@ -86,69 +55,56 @@ export const useGameEngine = () => {
     for (let i = neutrons.value.length - 1; i >= 0; i--) {
       const neutron = neutrons.value[i]
 
-      // Draw neutron
-      context.fillStyle = 'white'
-      context.beginPath()
-      context.arc(neutron.x, neutron.y, 5, 0, Math.PI * 2)
-      context.fill()
-      context.closePath()
+      neutron.move() // Move the neutron
 
-      // Update neutron position based on direction
-      neutron.x += neutron.directionX * slowNeutronSpeed // Move in x direction
-      neutron.y += neutron.directionY * slowNeutronSpeed // Move in y direction
-
-      // Check for collisions with uranium
+      // Check for collision with uranium
       const col = Math.floor(neutron.x / cellSize)
       const row = Math.floor(neutron.y / cellSize)
-
-      if (col >= 0 && col < columns && row >= 0 && row < rows) {
-        if (getElement(row, col) === 'uranium') {
-          explodeUranium(row, col) // Trigger explosion
-          neutrons.value.splice(i, 1) // Remove neutron after explosion
-          continue // Skip the rest of this iteration
+      if (row >= 0 && row < rows && col >= 0 && col < columns) {
+        const element = getElement(row, col)
+        if (element.type === ELEMENT_TYPES.URANIUM) {
+          explodeUranium(row, col) // Explode uranium if neutron collides
+          neutrons.value.splice(i, 1) // Remove the neutron
+          continue // Skip the rest of the loop for this neutron
         }
       }
 
-      // Remove neutrons that go out of the canvas
+      // Check if the neutron is out of bounds
       if (
-        neutron.x < 0 ||
-        neutron.x > canvasRef.value.width ||
-        neutron.y < 0 ||
-        neutron.y > canvasRef.value.height
+        neutron.isOutOfBounds(canvasRef.value.width, canvasRef.value.height)
       ) {
-        neutrons.value.splice(i, 1)
+        neutrons.value.splice(i, 1) // Remove neutron if out of bounds
+      } else {
+        // Draw the neutron if it is within bounds using its draw method
+        neutron.draw(context)
       }
     }
 
     requestAnimationFrame(gameLoop) // Continue the loop
   }
 
-  // Fire a neutron
-  const fireRandomNeutron = (row, col) => {
-    const angle = Math.random() * Math.PI * 2 // Random angle in radians
-    const neutron = {
-      x: col * cellSize + cellSize / 2,
-      y: row * cellSize + cellSize / 2,
-      directionX: Math.cos(angle),
-      directionY: Math.sin(angle),
-    }
+  const fireNeutron = (row, col) => {
+    const neutron = new Neutron(
+      col * cellSize + cellSize / 2,
+      row * cellSize + cellSize / 2,
+    )
     neutrons.value.push(neutron)
   }
 
   const fireNeutrons = (row, col, quantity) => {
     for (let i = 0; i < quantity; i++) {
-      fireRandomNeutron(row, col)
+      fireNeutron(row, col)
     }
   }
 
   // Explode uranium
   const explodeUranium = (row, col) => {
-    if (getElement(row, col) !== 'uranium') {
+    if (getElement(row, col).type !== ELEMENT_TYPES.URANIUM) {
       return
     }
 
     // Make this element become inert
-    replaceElement(row, col, 'inert')
+    replaceElement(row, col, new GridElement('inert', 'gray'))
 
     // Fire 3 neutrons in random directions.
     fireNeutrons(row, col, 3)
