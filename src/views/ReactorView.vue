@@ -1,8 +1,18 @@
 <script setup>
 import GridView from '@/components/GridView.vue'
 import { useGameEngineStore } from '@/stores/gameEngineStore'
+import { computed } from 'vue'
 
 const gameEngineStore = useGameEngineStore()
+const isRunning = computed(() => gameEngineStore.isRunning)
+
+const toggleGameState = () => {
+  if (isRunning.value) {
+    gameEngineStore.stop()
+  } else {
+    gameEngineStore.start()
+  }
+}
 </script>
 
 <template>
@@ -16,8 +26,11 @@ const gameEngineStore = useGameEngineStore()
         <GridView />
       </div>
 
-      <div>
+      <div class="flex gap-x-4">
         <button @click="gameEngineStore.reset()">Reset simulation</button>
+        <button @click="toggleGameState">
+          {{ isRunning ? 'Stop' : 'Start' }} simulation
+        </button>
       </div>
     </div>
   </div>

@@ -14,3 +14,6 @@ export const ELEMENT_TYPES = {
     color: 'rgb(120,120,120)',
   },
 }
+
+export const MIN_DECAY_TIME = 1000 * 2
+export const MAX_DECAY_TIME = 1000 * 180

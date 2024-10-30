@@ -6,7 +6,7 @@ import GridElement from '@/models/GridElement'
 import Neutron from '@/models/Neutron'
 
 export const useGameEngineStore = defineStore('gameEngine', () => {
-  const richness = 50
+  const richness = 20
   const columns = 40
   const rows = 25
   const cellSize = 30
@@ -20,7 +20,7 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
   let canvas = null
   let context = null
   let animationFrameId = null
-  let isRunning = true
+  const isRunning = ref(true)
 
   // Fuel regeneration
   const minUraniumTime = 200
@@ -39,6 +39,7 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
       requestAnimationFrame(gameLoop)
       setupVisibilityChangeHandler()
       scheduleRandomUranium()
+      startDecayForInertElements()
     }
   }
 
@@ -66,8 +67,21 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
     scheduleRandomUranium()
   }
 
+  // Function to initiate decay for all inert elements
+  const startDecayForInertElements = () => {
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < columns; col++) {
+        const element = getElement(row, col)
+        if (element.type === ELEMENT_TYPES.INERT.type) {
+          element.startDecay(() => fireNeutron(row, col))
+        }
+      }
+    }
+  }
+
   // Function to schedule the next uranium addition
   const scheduleRandomUranium = () => {
+    if (!isRunning.value) return
     const randomDelay = Math.floor(
       Math.random() * (maxUraniumTime - minUraniumTime + 1) + minUraniumTime,
     )
@@ -78,10 +92,10 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
   const setupVisibilityChangeHandler = () => {
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) {
-        isRunning = false // Pause the game
+        isRunning.value = false // Pause the game
         cancelAnimationFrame(animationFrameId) // Stop the game loop
       } else {
-        isRunning = true // Resume the game
+        isRunning.value = true // Resume the game
         requestAnimationFrame(gameLoop) // Restart the game loop
       }
     })
@@ -114,7 +128,7 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
 
   // Game loop
   const gameLoop = () => {
-    if (!isRunning) return
+    if (!isRunning.value) return
     context.clearRect(0, 0, canvas.width, canvas.height) // Clear canvas
     drawGrid() // Redraw grid
 
@@ -190,6 +204,16 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
     generateElements(richness)
   }
 
+  const stop = () => {
+    isRunning.value = false
+    cancelAnimationFrame(animationFrameId) // Stop the game loop
+  }
+
+  const start = () => {
+    isRunning.value = true
+    requestAnimationFrame(gameLoop) // Restart the game loop
+  }
+
   return {
     canvasRef,
     rows,
@@ -197,8 +221,11 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
     cellSize,
     gridElements,
     neutrons,
+    isRunning,
     explodeUranium,
     initialize,
     reset,
+    stop,
+    start,
   }
 })

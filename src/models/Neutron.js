@@ -24,7 +24,7 @@ class Neutron {
   draw(context) {
     context.fillStyle = 'white'
     context.beginPath()
-    context.arc(this.x, this.y, 5, 0, Math.PI * 2)
+    context.arc(this.x, this.y, 4, 0, Math.PI * 2)
     context.fill()
     context.closePath()
   }

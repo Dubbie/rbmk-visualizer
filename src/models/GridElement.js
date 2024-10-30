@@ -1,4 +1,4 @@
-import { ELEMENT_TYPES } from '@/constants'
+import { ELEMENT_TYPES, MAX_DECAY_TIME, MIN_DECAY_TIME } from '@/constants'
 
 class GridElement {
   constructor(typeDefinition) {
@@ -29,6 +29,7 @@ class GridElement {
     }
     this.type = typeDefinition.type
     this.color = typeDefinition.color
+    this.decayInterval = null
   }
 
   draw(context, col, row, cellSize) {
@@ -44,6 +45,39 @@ class GridElement {
       )
       context.fill()
       context.closePath()
+    }
+  }
+
+  startDecay(fireNeutron) {
+    if (this.type !== ELEMENT_TYPES.INERT.type) return
+
+    // Clear any existing timer
+    if (this.decayInterval) {
+      clearInterval(this.decayInterval)
+    }
+
+    const scheduleNeutronFire = () => {
+      if (this.type === ELEMENT_TYPES.INERT.type) {
+        // Schedule the next decay event
+        const randomDelay = Math.floor(
+          Math.random() * (MAX_DECAY_TIME - MIN_DECAY_TIME + 1) +
+            MIN_DECAY_TIME,
+        ) // Random delay between 2-5 seconds
+        this.decayInterval = setTimeout(() => {
+          // Fire a neutron at a random interval
+          fireNeutron()
+          scheduleNeutronFire()
+        }, randomDelay)
+      }
+    }
+
+    scheduleNeutronFire() // Start the first decay event
+  }
+
+  stopDecay() {
+    if (this.decayInterval) {
+      clearTimeout(this.decayInterval)
+      this.decayInterval = null // Clear the timer
     }
   }
 }
