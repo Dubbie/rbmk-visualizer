@@ -1,7 +1,12 @@
 // src/stores/gameEngineStore.js
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { DEBUG, ELEMENT_TYPES } from '@/constants'
+import {
+  DEBUG,
+  ELEMENT_TYPES,
+  MAX_URANIUM_TIME,
+  MIN_URANIUM_TIME,
+} from '@/constants'
 import GridElement from '@/models/GridElement'
 import Neutron from '@/models/Neutron'
 import ControlRod from '@/models/ControlRod'
@@ -23,10 +28,6 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
   let context = null
   let animationFrameId = null
   const isRunning = ref(true)
-
-  // Fuel regeneration
-  const minUraniumTime = 200
-  const maxUraniumTime = 2000
 
   // Initialize the canvas and start the game loop
   const initialize = canvasParam => {
@@ -103,7 +104,8 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
   const scheduleRandomUranium = () => {
     if (!isRunning.value) return
     const randomDelay = Math.floor(
-      Math.random() * (maxUraniumTime - minUraniumTime + 1) + minUraniumTime,
+      Math.random() * (MAX_URANIUM_TIME - MIN_URANIUM_TIME + 1) +
+        MIN_URANIUM_TIME,
     )
     setTimeout(addRandomUranium, randomDelay)
   }

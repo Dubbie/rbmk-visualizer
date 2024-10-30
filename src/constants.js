@@ -17,3 +17,6 @@ export const ELEMENT_TYPES = {
 
 export const MIN_DECAY_TIME = 1000 * 2
 export const MAX_DECAY_TIME = 1000 * 180
+
+export const MIN_URANIUM_TIME = 100
+export const MAX_URANIUM_TIME = 2000
