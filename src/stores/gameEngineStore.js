@@ -1,14 +1,19 @@
 // src/stores/gameEngineStore.js
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { ELEMENT_TYPES, HEATING_RATE, TARGET_NEUTRON_COUNT } from '@/constants'
+import {
+  ELEMENT_TYPES,
+  HEATING_RATE,
+  RICHNESS,
+  TARGET_NEUTRON_COUNT,
+} from '@/constants'
 import GridElement from '@/models/GridElement'
 import Neutron from '@/models/Neutron'
 import ControlRod from '@/models/ControlRod'
 import UraniumRefillManager from '@/models/UraniumRefillManager'
 
 export const useGameEngineStore = defineStore('gameEngine', () => {
-  const richness = 10
+  const richness = RICHNESS
   const columns = 40
   const rows = 21
   const cellSize = 30
@@ -268,11 +273,21 @@ export const useGameEngineStore = defineStore('gameEngine', () => {
     })
   }
 
+  const resetRods = () => {
+    autoAdjustRods.value = true
+    rodOverrideDirection.value = null
+
+    controlRods.value.forEach(rod => {
+      rod.height = rod.maxHeight
+    })
+  }
+
   const reset = () => {
     console.log('Resetting!')
 
     neutrons.value = []
     generateElements(richness)
+    resetRods()
   }
 
   const stop = () => {

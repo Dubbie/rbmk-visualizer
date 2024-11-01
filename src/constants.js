@@ -14,7 +14,7 @@ export const ELEMENT_TYPES = {
     color: 'rgb(120,120,120)',
   },
 }
-
+export const RICHNESS = 15
 export const ROD_SPEED = 0.15
 
 export const MIN_DECAY_TIME = 1000 * 1
@@ -30,4 +30,4 @@ export const EVAPORATION_THRESHOLD = 100 // Temp at which water evaporates
 export const COOLING_RATE = 5 // Temperature decrease per cooling interval
 export const COOLING_DELAY = 0 // Delay before cooling starts
 export const HEATING_RATE = 0.75 // Temperate increase per neutron
-export const ABSORPTION_CHANCE = 0.005 // Chance to absorb a neutron
+export const ABSORPTION_CHANCE = 0.008 // Chance to absorb a neutron
